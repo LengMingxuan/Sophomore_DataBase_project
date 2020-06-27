@@ -1,0 +1,233 @@
+*       *********************************************************
+*       *                                                         
+*       * 06/08/20            MAINMENU.MPR              10:12:37  
+*       *                                                         
+*       *********************************************************
+*       *                                                         
+*       * 作者名称                                                
+*       *                                                         
+*       * 版权所有 (C) 2020 公司名称                             
+*       * 地址                                                    
+*       * 城市,     邮编                                          
+*       * 国家                                              
+*       *                                                         
+*       * 说明:                                            
+*       * 此程序由 GENMENU 自动生成。    
+*       *                                                         
+*       *********************************************************
+
+* To attach this menu to your Top-Level form, 
+* call it from the Init event of the form:
+
+* Syntax: DO <mprname> WITH <oFormRef> [,<cMenuname>|<lRename>][<lUniquePopups>]
+
+*	oFormRef - form object reference (THIS)
+*	cMenuname - name for menu (this is required for Append menus - see below)
+*	lRename - renames Name property of your form
+*	lUniquePopups - determines whether to generate unique ids for popup names
+			
+* 	example:
+
+*	PROCEDURE Init
+*		DO mymenu.mpr WITH THIS,.T.
+*	ENDPROC
+
+* Use the optional 2nd parameter if you plan on running multiple instances
+* of your Top-Level form. The preferred method is to create an empty string
+* variable and pass it by reference so you can receive the form name after
+* the MPR file is run. You can later use this reference to destroy the menu.
+
+*	PROCEDURE Init
+*		LOCAL cGetMenuName
+*		cGetMenuName = ""
+*		DO mymenu.mpr WITH THIS, m.cGetMenuName
+*	ENDPROC
+
+* The logical lRename parameter will change the name property of your 
+* form to the same name given the menu and may cause conflicts in your 
+* code if you directly reference the form by name.
+
+* You will also need to remove the menu when the form is destroyed so that it does 
+* not remain in memory unless you wish to reactivate it later in a new form.
+
+* If you passed the optional lRename parameter as .T. as in the above example, 
+* you can easily remove the menu in the form's Destroy event as shown below.
+* This strategy is ideal when using multiple instances of Top-Level forms.
+
+*	example:
+
+*	PROCEDURE Destroy
+*		RELEASE MENU (THIS.Name) EXTENDED
+*	ENDPROC
+
+* Using Append/Before/After location options:
+
+*   You might want to append a menu to an existing Top-Level form by setting 
+*   the Location option in the General Options dialog. In order to do this, you 
+*   must pass the name of the menu in which to attach the new one. The second
+*   parameter is required here. If you originally created the menu with the lRename 
+*   parameter = .T., then you can update the menu with code similar to the following:
+
+*	example:
+
+*	DO mymenu2.mpr WITH THISFORM,THISFORM.name
+*
+* Using lUniquePopups:
+
+*   If you are running this menu multiple times in your application, such as in multiple 
+*   instances of the same top-level form, you should pass .T. to the lUniquePopups 
+*   parameter so that unique popup names are generated to avoid possible conflicts.
+
+*	example:
+
+*	PROCEDURE Init
+*		DO mymenu.mpr WITH THIS,.T.,.T.
+*	ENDPROC
+*
+* Note: Parm4-Parm9 are not reserved and freely available for use with your menu code.
+*
+
+LPARAMETERS oFormRef, getMenuName, lUniquePopups, parm4, parm5, parm6, parm7, parm8, parm9
+LOCAL cMenuName, nTotPops, a_menupops, cTypeParm2, cSaveFormName
+IF TYPE("m.oFormRef") # "O" OR ;
+  LOWER(m.oFormRef.BaseClass) # 'form' OR ;
+  m.oFormRef.ShowWindow # 2
+	MESSAGEBOX([只能从顶层表单调用该菜单。请确认您表单的 ShowWindow 属性已设为 2。阅读此菜单 MPR 文件的头部分，可以获得详细信息。])
+	RETURN
+ENDIF
+m.cTypeParm2 = TYPE("m.getMenuName")
+m.cMenuName = SYS(2015)
+m.cSaveFormName = m.oFormRef.Name
+IF m.cTypeParm2 = "C" OR (m.cTypeParm2 = "L" AND m.getMenuName)
+	m.oFormRef.Name = m.cMenuName
+ENDIF
+IF m.cTypeParm2 = "C" AND !EMPTY(m.getMenuName)
+	m.cMenuName = m.getMenuName
+ENDIF
+DIMENSION a_menupops[1]
+IF TYPE("m.lUniquePopups")="L" AND m.lUniquePopups
+	FOR nTotPops = 1 TO ALEN(a_menupops)
+		a_menupops[m.nTotPops]= SYS(2015)
+	ENDFOR
+ELSE
+	a_menupops[1]="维护"
+ENDIF
+
+
+*       *********************************************************
+*       *                                                         
+*       *                         菜单定义                        
+*       *                                                         
+*       *********************************************************
+*
+
+DEFINE MENU (m.cMenuName) IN (m.oFormRef.Name) BAR
+
+DEFINE PAD _5sc0lvtxg OF (m.cMenuName) PROMPT "维护" COLOR SCHEME 3
+DEFINE PAD _5sc0lvtxh OF (m.cMenuName) PROMPT "选课" COLOR SCHEME 3 ;
+	SKIP FOR x
+DEFINE PAD _5sc0lvtxi OF (m.cMenuName) PROMPT "关闭" COLOR SCHEME 3
+ON PAD _5sc0lvtxg OF (m.cMenuName) ACTIVATE POPUP (a_menupops[1])
+ON SELECTION PAD _5sc0lvtxh OF (m.cMenuName) ;
+	DO _5sc0lvtxj ;
+	IN LOCFILE("\201809200110-冷鸣轩\MAINMENU" ,"MPX;MPR|FXP;PRG" ,"WHERE is MAINMENU?")
+ON SELECTION PAD _5sc0lvtxi OF (m.cMenuName) ;
+	DO _5sc0lvtxk ;
+	IN LOCFILE("\201809200110-冷鸣轩\MAINMENU" ,"MPX;MPR|FXP;PRG" ,"WHERE is MAINMENU?")
+
+DEFINE POPUP (a_menupops[1]) MARGIN RELATIVE SHADOW COLOR SCHEME 4
+DEFINE BAR 1 OF (a_menupops[1]) PROMPT "学生表" ;
+	KEY CTRL+S, "CTRL+S" ;
+	SKIP FOR y
+DEFINE BAR 2 OF (a_menupops[1]) PROMPT "课程表" ;
+	KEY CTRL+C, "CTRL+C" ;
+	SKIP FOR z
+ON SELECTION BAR 1 OF (a_menupops[1]) ;
+	DO _5sc0lvtxl ;
+	IN LOCFILE("\201809200110-冷鸣轩\MAINMENU" ,"MPX;MPR|FXP;PRG" ,"WHERE is MAINMENU?")
+ON SELECTION BAR 2 OF (a_menupops[1]) ;
+	DO _5sc0lvtxm ;
+	IN LOCFILE("\201809200110-冷鸣轩\MAINMENU" ,"MPX;MPR|FXP;PRG" ,"WHERE is MAINMENU?")
+
+ACTIVATE MENU (m.cMenuName) NOWAIT
+
+IF m.cTypeParm2 = "C"
+	m.getMenuName = m.cMenuName
+	m.oFormRef.Name = m.cSaveFormName 
+ENDIF
+
+
+*       *********************************************************
+*       *                                                         
+*       * _5SC0LVTXJ  ON SELECTION PAD                            
+*       *                                                         
+*       * Procedure Origin:                                       
+*       *                                                         
+*       * From Menu:  MAINMENU.MPR,            Record:    7       
+*       * Called By:  ON SELECTION PAD                            
+*       * Prompt:     选课                                        
+*       * Snippet:    1                                           
+*       *                                                         
+*       *********************************************************
+*
+PROCEDURE _5sc0lvtxj
+do form xk.scx
+y=.t.
+z=.t.
+
+
+*       *********************************************************
+*       *                                                         
+*       * _5SC0LVTXK  ON SELECTION PAD                            
+*       *                                                         
+*       * Procedure Origin:                                       
+*       *                                                         
+*       * From Menu:  MAINMENU.MPR,            Record:    8       
+*       * Called By:  ON SELECTION PAD                            
+*       * Prompt:     关闭                                        
+*       * Snippet:    2                                           
+*       *                                                         
+*       *********************************************************
+*
+PROCEDURE _5sc0lvtxk
+if messagebox("您确实要退出吗？",1,"向您提示")=1
+ clear events
+ quit
+endif
+
+
+
+*       *********************************************************
+*       *                                                         
+*       * _5SC0LVTXL  ON SELECTION BAR 1 OF POPUP 维护            
+*       *                                                         
+*       * Procedure Origin:                                       
+*       *                                                         
+*       * From Menu:  MAINMENU.MPR,            Record:    5       
+*       * Called By:  ON SELECTION BAR 1 OF POPUP 维护            
+*       * Prompt:     学生表                                      
+*       * Snippet:    3                                           
+*       *                                                         
+*       *********************************************************
+*
+PROCEDURE _5sc0lvtxl
+do form xs.scx
+x=.t.
+
+
+*       *********************************************************
+*       *                                                         
+*       * _5SC0LVTXM  ON SELECTION BAR 2 OF POPUP 维护            
+*       *                                                         
+*       * Procedure Origin:                                       
+*       *                                                         
+*       * From Menu:  MAINMENU.MPR,            Record:    6       
+*       * Called By:  ON SELECTION BAR 2 OF POPUP 维护            
+*       * Prompt:     课程表                                      
+*       * Snippet:    4                                           
+*       *                                                         
+*       *********************************************************
+*
+PROCEDURE _5sc0lvtxm
+do form kc.scx
+x=.t.
